@@ -2,15 +2,16 @@
 var tape = require('tape')
 
 var data = [
-  {key: Math.random(), value: {foo: true, bar: Date.now()}},
-  {key: Math.random(), value: {foo: true, bar: Date.now()}},
-  {key: Math.random(), value: {foo: true, bar: Date.now()}}
+  {key: '#'+Math.random(), value: {foo: true, bar: Date.now()}},
+  {key: '#'+Math.random(), value: {foo: true, bar: Date.now()}},
+  {key: '#'+Math.random(), value: {foo: true, bar: Date.now()}}
 ]
 
 module.exports = function (create) {
 
   var seed = Date.now()
-  var db = create(seed)
+  var filename = '/tmp/test-flumeview-index_'+seed+'/'
+  var db = create(filename, seed)
 
   tape('simple', function (t) {
     db.append(data, function (err, m) {
@@ -37,22 +38,17 @@ module.exports = function (create) {
 
   tape('test', test)
 
+  tape('close', function (t) {
+    db.close(t.end)
+  })
+
   tape('reload', function (t) {
-    var db = create(seed)
+    db = create(filename, seed)
     t.end()
   })
 
   tape('retest', test)
 
 }
-
-
-
-
-
-
-
-
-
 
 
