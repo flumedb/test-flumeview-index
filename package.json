@@ -1,13 +1,16 @@
 {
   "name": "test-flumeview-index",
-  "description": "",
+  "description": "tests for flumeview indexes (kv maps)",
   "version": "1.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/dominictarr/test-flumeview-index",
   "repository": {
     "type": "git",
     "url": "git://github.com/dominictarr/test-flumeview-index.git"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tape": "^4.6.3"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
@@ -15,3 +18,8 @@
   "author": "'Dominic Tarr' <dominic.tarr@gmail.com> (dominictarr.com)",
   "license": "MIT"
 }
+
+
+
+
+
