@@ -17,6 +17,7 @@ module.exports = function (create) {
 
     var t = Timer('append')
     db.append(data, function (err, offset) {
+      if(err) throw err
       //wait until the view is consistent!
       db.index.since(function (v) {
         if(v < offset) return
@@ -84,4 +85,5 @@ module.exports = function (create) {
   })
 
 }
+
 
