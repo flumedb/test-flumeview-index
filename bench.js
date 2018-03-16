@@ -66,16 +66,14 @@ module.exports = function (create) {
         t(n)
         t = Timer('ordered')
         db.close(function () {
-          db.close(function () {
-            var db = create(file)
-            ordered(db, N, function (err, n) {
-              t(n)
-              t = Timer('random_cached')
-              db.close(function () {
-                var db = create(file)
-                random(db, N, function (err, n) {
-                  t(n)
-                })
+          var db = create(file)
+          ordered(db, N, function (err, n) {
+            t(n)
+            t = Timer('random_cached')
+            db.close(function () {
+              var db = create(file)
+              random(db, N, function (err, n) {
+                t(n)
               })
             })
           })
@@ -83,7 +81,6 @@ module.exports = function (create) {
       })
     })
   })
-
 }
 
 
