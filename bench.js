@@ -54,7 +54,7 @@ module.exports = function (create) {
   var file = '/tmp/test-flumeview-index_'+seed+'/'
 
   var db = create(file, seed)
-  var N = 10000
+  var N = 50000
   var t = Timer('append')
   initialize(db, N, function (err, n) {
     t(n)
