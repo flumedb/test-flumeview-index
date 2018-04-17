@@ -1,7 +1,7 @@
 {
   "name": "test-flumeview-index",
   "description": "tests for flumeview indexes (kv maps)",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "homepage": "https://github.com/dominictarr/test-flumeview-index",
   "repository": {
     "type": "git",
