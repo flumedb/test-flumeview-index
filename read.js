@@ -1,5 +1,5 @@
 var pull = require('pull-stream')
-
+var compare = require('typewise').compare
 var tape = require('tape')
 
 
@@ -7,11 +7,16 @@ module.exports = function (create, N) {
   N = N || 10
   var data = []
   for(var i = 0; i < N; i++)
-    data.push({key: '#'+Math.random(), value: {foo: true, bar: Date.now(), i: i}})
+    data.push({key: [~~(Math.random()*10), '#'+Math.random()], value: {foo: true, bar: Date.now(), i: i}})
 
   var seed = Date.now()
   var filename = '/tmp/test-flumeview-index_'+seed+'/'
   var db = create(filename, seed)
+
+  var sorted = data.slice().sort(function (a, b) {
+    return compare(a.key, b.key)
+  })
+
 
   tape('simple', function (t) {
     db.append(data, function (err, m) {
@@ -28,7 +33,8 @@ module.exports = function (create, N) {
   }
 
   function test (t) {
-    all({}, function (err, ary) {
+    all({old: true, live: false}, function (err, ary) {
+      t.deepEqual(ary.map(function (e) { return {key:e.value.key, value:e.value.value}}), sorted)
       all({keys: true, values: false}, function (err, _ary) {
         t.deepEqual(_ary, ary.map(function (e) { return {key: e.key, seq: e.seq} }))
         all({keys: false, values: true}, function (err, _ary) {
@@ -56,5 +62,4 @@ module.exports = function (create, N) {
   tape('retest', test)
 
 }
-
 
