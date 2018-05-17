@@ -1,3 +1,5 @@
+var pull = require('pull-stream')
+
 module.exports = function (create) {
 
   function Timer (name) {
@@ -50,6 +52,25 @@ module.exports = function (create) {
 
   }
 
+  function random_ranges (db, N, makeOpts, cb) {
+    if(!db.index.read) return cb(new Error('not supported'))
+
+    ;(function get(i) {
+      if(i >= N) return cb(null, N)
+
+      pull(
+        db.index.read(
+          makeOpts('#'+~~(Math.random()*N))
+//        {gt: '#'+~~(Math.random()*N), limit: 10, keys: false}
+
+        ),
+        pull.collect(function (err, ary) {
+          setImmediate(function () { get(i + ary.length) })
+        })
+      )
+    })(0)
+  }
+
   var seed = Date.now()
   var file = '/tmp/test-flumeview-index_'+seed+'/'
 
@@ -69,11 +90,26 @@ module.exports = function (create) {
           var db = create(file)
           ordered(db, N, function (err, n) {
             t(n)
-            t = Timer('random_cached')
-            db.close(function () {
-              var db = create(file)
-              random(db, N, function (err, n) {
+            t = Timer('random_ranges')
+            random_ranges(db, N, function (key) {
+              return {gt: key, limit: 10, keys: false}
+            }, function (err, n) {
+              t(n)
+
+
+              t = Timer('random_ranges_reverse')
+              random_ranges(db, N, function (key) {
+                return {lt: key, limit: 10, keys: false, reverse: true}
+              }, function (err, n) {
                 t(n)
+
+                db.close(function () {
+                  var db = create(file)
+                  t = Timer('random_cached2')
+                  random(db, N, function (err, n) {
+                    t(n)
+                  })
+                })
               })
             })
           })
@@ -82,5 +118,7 @@ module.exports = function (create) {
     })
   })
 }
+
+
 
 
