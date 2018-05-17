@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "pull-stream": "^3.6.1",
-    "tape": "^4.6.3"
+    "typewise": "^1.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tape": "^4.9.0"
+  },
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
