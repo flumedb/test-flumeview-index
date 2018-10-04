@@ -6,7 +6,7 @@ module.exports = function (create) {
     var start = Date.now()
     return function (ops) {
       var seconds = (Date.now() - start)/1000
-      console.log(name, ops, ops/seconds)
+      console.log([name, ops, ops/seconds].join(', '))
     }
   }
 
@@ -87,6 +87,7 @@ module.exports = function (create) {
         t(n)
         t = Timer('ordered')
         db.close(function () {
+          console.log('closed')
           var db = create(file)
           ordered(db, N, function (err, n) {
             t(n)
@@ -95,8 +96,6 @@ module.exports = function (create) {
               return {gt: key, limit: 10, keys: false}
             }, function (err, n) {
               t(n)
-
-
               t = Timer('random_ranges_reverse')
               random_ranges(db, N, function (key) {
                 return {lt: key, limit: 10, keys: false, reverse: true}
@@ -104,8 +103,9 @@ module.exports = function (create) {
                 t(n)
 
                 db.close(function () {
+                  console.log('closed')
                   var db = create(file)
-                  t = Timer('random_cached2')
+                  t = Timer('random_uncached2')
                   random(db, N, function (err, n) {
                     t(n)
                   })
@@ -118,7 +118,6 @@ module.exports = function (create) {
     })
   })
 }
-
 
 
 
