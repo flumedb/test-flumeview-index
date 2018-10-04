@@ -61,5 +61,73 @@ module.exports = function (create, N) {
 
   tape('retest', test)
 
+  tape('empty close 1', function (t) {
+    var db = create(filename+2, seed)
+    pull(
+      db.index.read({}),
+      pull.collect(function (err, ary) {
+        if(err) throw err
+        t.deepEqual(ary, [])
+        t.end()
+      })
+    )
+    setTimeout(function () {
+      db.close(function () {
+
+      })
+    })
+  })
+  tape('empty close 1', function (t) {
+    var db = create(filename+2, seed)
+    pull(
+      db.index.read({}),
+      pull.collect(function (err, ary) {
+        if(err) throw err
+        t.deepEqual(ary, [])
+        t.end()
+      })
+    )
+    setTimeout(function () {
+      db.close(function () {})
+    })
+  })
+  tape('empty close 2', function (t) {
+    var db = create(filename+3, seed)
+    pull(
+      db.index.read({}),
+      pull.collect(function (err, ary) {
+        if(err) throw err
+        t.deepEqual(ary, [])
+        t.end()
+      })
+    )
+    db.close(function () {})
+  })
+  tape('empty close 2', function (t) {
+    var db = create(filename+4, seed)
+    pull(
+      db.index.read({}),
+      pull.collect(function (err, ary) {
+        if(err) throw err
+        t.deepEqual(ary, [])
+        t.end()
+        db.close(function () {})
+      })
+    )
+  })
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
