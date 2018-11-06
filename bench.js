@@ -2,6 +2,7 @@ var pull = require('pull-stream')
 
 module.exports = function (create) {
 
+  console.log("name, ops, opts/second")
   function Timer (name) {
     var start = Date.now()
     return function (ops) {
@@ -103,7 +104,6 @@ module.exports = function (create) {
                 t(n)
 
                 db.close(function () {
-                  console.log('closed')
                   var db = create(file)
                   t = Timer('random_uncached2')
                   random(db, N, function (err, n) {
@@ -118,6 +118,7 @@ module.exports = function (create) {
     })
   })
 }
+
 
 
 
