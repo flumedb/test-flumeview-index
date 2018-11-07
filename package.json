@@ -8,6 +8,7 @@
     "url": "git://github.com/dominictarr/test-flumeview-index.git"
   },
   "dependencies": {
+    "cont": "^1.0.3",
     "pull-stream": "^3.6.1",
     "typewise": "^1.0.3"
   },
