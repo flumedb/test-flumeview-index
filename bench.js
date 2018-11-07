@@ -1,13 +1,13 @@
 var pull = require('pull-stream')
 
-module.exports = function (create) {
+module.exports = function (create, _N) {
 
-  console.log("name, ops, opts/second")
+  console.log("name, ops, opts/second, seconds")
   function Timer (name) {
     var start = Date.now()
     return function (ops) {
       var seconds = (Date.now() - start)/1000
-      console.log([name, ops, ops/seconds].join(', '))
+      console.log([name, ops, ops/seconds, seconds].join(', '))
     }
   }
 
@@ -66,6 +66,7 @@ module.exports = function (create) {
 
         ),
         pull.collect(function (err, ary) {
+          if(err) return cb(err)
           setImmediate(function () { get(i + ary.length) })
         })
       )
@@ -76,7 +77,7 @@ module.exports = function (create) {
   var file = '/tmp/test-flumeview-index_'+seed+'/'
 
   var db = create(file, seed)
-  var N = 50000
+  var N = _N || 50000
   var t = Timer('append')
   initialize(db, N, function (err, n) {
     t(n)
@@ -118,7 +119,4 @@ module.exports = function (create) {
     })
   })
 }
-
-
-
 
