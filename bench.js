@@ -114,7 +114,18 @@ module.exports = function (create, _N) {
     return function (cb) {
       db.close(function () {
         db = create(file, seed)
-        cb()
+        if(false) {
+          cb()
+        } else {
+          var start = Date.now()
+          var rm = db.index.since(function (v) {
+            if(v === db.since.value) {
+              console.error('reload', Date.now()-start)
+              rm()
+              cb()
+            }
+          })
+        }
       })
     }
   }
@@ -136,13 +147,17 @@ module.exports = function (create, _N) {
     run('ordered_series', ordered_para),
     run('random_series', random_para),
     refresh(),
-    run('ordered_para (uncached)', ordered_para),
+    run('ordered_para (cool)', ordered_para),
+    run('ordered_para (warm)', ordered_para),
     refresh(),
-    run('random_para (uncached)', random_para),
+    run('random_para (cool)', random_para),
+    run('random_para (warm)', random_para),
     refresh(),
-    run('ordered_series (uncached)', ordered_para),
+    run('ordered_series (cool)', ordered_para),
+    run('ordered_series (warm)', ordered_para),
     refresh(),
-    run('random_series (uncached)', random_para),
+    run('random_series (cool)', random_para),
+    run('random_series (warm)', random_para),
     refresh(),
     run('random-ranges', random_ranges, limit10),
     run('random-ranges (reverse)', random_ranges, limit10reverse),
@@ -151,5 +166,14 @@ module.exports = function (create, _N) {
     })
   })
 }
+
+
+
+
+
+
+
+
+
 
 
