@@ -1,5 +1,5 @@
 var pull = require('pull-stream')
-
+var cont = require('cont')
 module.exports = function (create, _N) {
 
   console.log("name, ops, opts/second, seconds")
@@ -11,14 +11,13 @@ module.exports = function (create, _N) {
     }
   }
 
-  function initialize (db, N, cb) {
+  function initialize (db, N, _, cb) {
     var data = []
     for(var i = 0; i < N; i++)
       data.push({key: '#'+i, value: {
         foo: Math.random(), bar: Date.now()
       }})
 
-    var t = Timer('append')
     db.append(data, function (err, offset) {
       if(err) throw err
       //wait until the view is consistent!
@@ -29,7 +28,7 @@ module.exports = function (create, _N) {
     })
   }
 
-  function ordered (db, N, cb) {
+  function ordered_para (db, N, _, cb) {
     //ordered reads
     var n = 0
     for(var i = 0; i < N; i++) {
@@ -41,7 +40,21 @@ module.exports = function (create, _N) {
     }
   }
 
-  function random (db, N, cb) {
+  function ordered_series (db, N, _, cb) {
+    //ordered reads
+    var n = 0, i = 0
+    ;(function _next () {
+        var key = '#'+(i++)
+        db.index.get(i, function (err, v) {
+          if(v.key != key) return cb('benchmark failed: incorrect key returned')
+          if(i == n) cb(null, N)
+          else setImmediate(_next)
+        })
+    })(0)
+  }
+
+
+  function random_series (db, N, _, cb) {
     ;(function get(i) {
       if(i >= N) return cb(null, N)
 
@@ -50,8 +63,22 @@ module.exports = function (create, _N) {
       })
 
     })(0)
-
   }
+
+  function random_para (db, N, _, cb) {
+    var n = 0
+    for(var i = 0; i < N; i++)
+      db.index.get('#'+~~(Math.random()*N), next)
+
+    function next (err, v) {
+      if(err && n >= 0) {
+        n = -1; cb(err)
+      }
+      else if(++n == N)
+        cb(null, N)
+    }
+  }
+
 
   function random_ranges (db, N, makeOpts, cb) {
     if(!db.index.read) return cb(new Error('not supported'))
@@ -62,8 +89,6 @@ module.exports = function (create, _N) {
       pull(
         db.index.read(
           makeOpts('#'+~~(Math.random()*N))
-//        {gt: '#'+~~(Math.random()*N), limit: 10, keys: false}
-
         ),
         pull.collect(function (err, ary) {
           if(err) return cb(err)
@@ -73,50 +98,58 @@ module.exports = function (create, _N) {
     })(0)
   }
 
+  function limit10 (key) {
+    return {gt: key, limit: 10, keys: false}
+  }
+  function limit10reverse (key) {
+    return {gt: key, limit: 10, keys: false, reverse: true}
+  }
+
   var seed = Date.now()
   var file = '/tmp/test-flumeview-index_'+seed+'/'
-
   var db = create(file, seed)
   var N = _N || 50000
-  var t = Timer('append')
-  initialize(db, N, function (err, n) {
-    t(n)
-    t = Timer('ordered_cached')
-    ordered(db, N, function (err, n) {
-      t(n)
-      t = Timer('random_cached')
-      random(db, N, function (err, n) {
-        t(n)
-        t = Timer('ordered')
-        db.close(function () {
-          console.log('closed')
-          var db = create(file)
-          ordered(db, N, function (err, n) {
-            t(n)
-            t = Timer('random_ranges')
-            random_ranges(db, N, function (key) {
-              return {gt: key, limit: 10, keys: false}
-            }, function (err, n) {
-              t(n)
-              t = Timer('random_ranges_reverse')
-              random_ranges(db, N, function (key) {
-                return {lt: key, limit: 10, keys: false, reverse: true}
-              }, function (err, n) {
-                t(n)
 
-                db.close(function () {
-                  var db = create(file)
-                  t = Timer('random_uncached2')
-                  random(db, N, function (err, n) {
-                    t(n)
-                  })
-                })
-              })
-            })
-          })
-        })
+  function refresh () {
+    return function (cb) {
+      db.close(function () {
+        db = create(file, seed)
+        cb()
       })
+    }
+  }
+
+  function run(name, benchmark, opts) {
+    return function (cb) {
+      var t = Timer(name)
+      benchmark(db, N, opts, function (err, n) {
+        t(err | n)
+        cb()
+      })
+    }
+  }
+
+  cont.series([
+    run('append', initialize),
+    run('ordered_para', ordered_para),
+    run('random_para', random_para),
+    run('ordered_series', ordered_para),
+    run('random_series', random_para),
+    refresh(),
+    run('ordered_para (uncached)', ordered_para),
+    refresh(),
+    run('random_para (uncached)', random_para),
+    refresh(),
+    run('ordered_series (uncached)', ordered_para),
+    refresh(),
+    run('random_series (uncached)', random_para),
+    refresh(),
+    run('random-ranges', random_ranges, limit10),
+    run('random-ranges (reverse)', random_ranges, limit10reverse),
+  ].filter(Boolean)) (function () {
+    db.close(function () {
     })
   })
 }
+
 
