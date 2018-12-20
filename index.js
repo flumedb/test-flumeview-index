@@ -7,7 +7,7 @@ var data = [
   {key: '#'+Math.random(), value: {foo: true, bar: Date.now()}}
 ]
 
-module.exports = function (create) {
+module.exports = function (create, retest) {
 
   var seed = Date.now()
   var filename = '/tmp/test-flumeview-index_'+seed+'/'
@@ -47,7 +47,9 @@ module.exports = function (create) {
     t.end()
   })
 
-  tape('retest', test)
+  if (retest !== false) {
+    tape('retest', test)
+  }
 
 }
 
