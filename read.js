@@ -66,7 +66,8 @@ module.exports = function (create, N) {
     pull(
       db.index.read({}),
       pull.collect(function (err, ary) {
-        if(err) throw err
+        //ignore err. might be an error or not,
+        //depending if read() was called before empty log loaded.
         t.deepEqual(ary, [])
         t.end()
       })
@@ -77,12 +78,14 @@ module.exports = function (create, N) {
       })
     })
   })
-  tape('empty close 1', function (t) {
+
+  tape('empty close 2', function (t) {
     var db = create(filename+2, seed)
     pull(
       db.index.read({}),
-      pull.collect(function (err, ary) {
-        if(err) throw err
+      pull.collect(function (_, ary) {
+        //ignore err. might be an error or not,
+        //depending if read() was called before empty log loaded.
         t.deepEqual(ary, [])
         t.end()
       })
@@ -91,24 +94,26 @@ module.exports = function (create, N) {
       db.close(function () {})
     })
   })
-  tape('empty close 2', function (t) {
+  tape('empty close 3', function (t) {
     var db = create(filename+3, seed)
     pull(
       db.index.read({}),
       pull.collect(function (err, ary) {
-        if(err) throw err
+        //should definitely be an error because db.close is called sync
+        t.ok(err)
         t.deepEqual(ary, [])
         t.end()
       })
     )
     db.close(function () {})
   })
-  tape('empty close 2', function (t) {
+  tape('empty close 4', function (t) {
     var db = create(filename+4, seed)
     pull(
       db.index.read({}),
       pull.collect(function (err, ary) {
-        if(err) throw err
+        //should not be an error because db.close not called yet.
+        t.notOk(err)
         t.deepEqual(ary, [])
         t.end()
         db.close(function () {})
@@ -117,16 +122,6 @@ module.exports = function (create, N) {
   })
 
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
