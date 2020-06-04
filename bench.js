@@ -1,6 +1,10 @@
 var pull = require('pull-stream')
 var cont = require('cont')
-module.exports = function (create, _N) {
+module.exports = function (create, _N, finalCb) {
+
+  if (typeof finalCb !== 'function') {
+    finalCb = () => {}
+  }
 
   console.log("name, ops, opts/second, seconds")
   function Timer (name) {
@@ -162,8 +166,7 @@ module.exports = function (create, _N) {
     run('random-ranges', random_ranges, limit10),
     run('random-ranges (reverse)', random_ranges, limit10reverse),
   ].filter(Boolean)) (function () {
-    db.close(function () {
-    })
+    db.close(finalCb)
   })
 }
 
