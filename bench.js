@@ -1,8 +1,13 @@
 var pull = require('pull-stream')
 var cont = require('cont')
+const os = require('os')
+const path = require('path')
+
 module.exports = function (create, _N, finalCb) {
 
+  console.log({ finalCb })
   if (typeof finalCb !== 'function') {
+    console.log('setting')
     finalCb = () => {}
   }
 
@@ -110,7 +115,7 @@ module.exports = function (create, _N, finalCb) {
   }
 
   var seed = Date.now()
-  var file = '/tmp/test-flumeview-index_'+seed+'/'
+  var file = path.join(os.tmpdir(), `test-flumeview-index-${seed}`)
   var db = create(file, seed)
   var N = _N || 50000
 
@@ -118,18 +123,14 @@ module.exports = function (create, _N, finalCb) {
     return function (cb) {
       db.close(function () {
         db = create(file, seed)
-        if(false) {
-          cb()
-        } else {
-          var start = Date.now()
-          var rm = db.index.since(function (v) {
-            if(v === db.since.value) {
-              console.error('reload', Date.now()-start)
-              rm()
-              cb()
-            }
-          })
-        }
+        var start = Date.now()
+        var rm = db.index.since(function (v) {
+          if(v === db.since.value) {
+            console.error('reload', Date.now()-start)
+            rm()
+            cb()
+          }
+        })
       })
     }
   }

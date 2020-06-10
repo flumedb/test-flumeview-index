@@ -1,6 +1,8 @@
 var pull = require('pull-stream')
 var compare = require('typewise').compare
 var tape = require('tape')
+const os = require('os')
+const path = require('path')
 
 
 module.exports = function (create, N) {
@@ -10,7 +12,7 @@ module.exports = function (create, N) {
     data.push({key: [~~(Math.random()*10), '#'+Math.random()], value: {foo: true, bar: Date.now(), i: i}})
 
   var seed = Date.now()
-  var filename = '/tmp/test-flumeview-index_'+seed+'/'
+  var filename = path.join(os.tmpdir(), `test-flumeview-index-${seed}`)
   var db = create(filename, seed)
 
   var sorted = data.slice().sort(function (a, b) {

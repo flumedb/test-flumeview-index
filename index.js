@@ -1,5 +1,7 @@
 
 var tape = require('tape')
+const path = require('path')
+const os = require('os')
 
 var data = [
   {key: '#'+Math.random(), value: {foo: true, bar: Date.now()}},
@@ -10,7 +12,7 @@ var data = [
 module.exports = function (create, retest) {
 
   var seed = Date.now()
-  var filename = '/tmp/test-flumeview-index_'+seed+'/'
+  var filename = path.join(os.tmpdir(), `test-flumeview-index-${seed}`)
   var db = create(filename, seed)
 
   tape('simple', function (t) {
